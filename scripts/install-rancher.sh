@@ -23,4 +23,4 @@ helm install rancher rancher-latest/rancher \
   --set ingress.tls.source=rancher \
   --set hostname=$RANCHER_INSTALL_HOSTNAME \
   --set replicas=3 \
-  --set bootstrapPassword$=RANCHER_INSTALL_PASSWORD
+  --set bootstrapPassword=$RANCHER_INSTALL_PASSWORD
