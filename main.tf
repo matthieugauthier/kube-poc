@@ -64,3 +64,86 @@ resource "aws_key_pair" "spot_key" {
   key_name   = "spot_key"
   public_key = local.keys_public
 }
+
+module "kube-control-plane-tools" {
+    source                      = "./modules/kube-control-plane"
+
+    name                        = "kube-cp-tools"
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    key_private                 = local.keys_private
+    tls_crt                     = local.tls_crt
+    tls_key                     = local.tls_key
+    rancher_install_doit        = "yes"
+    rancher_install_hostname    = local.rancher_install_hostname
+    rancher_install_password    = local.rancher_install_password
+    rancher_private_ip          = ""
+}
+module "kube-nodes-tools" {
+    source                      = "./modules/kube-nodes"
+
+    number                      = 0
+    #local.count_tools_nodes
+    name                        = "kube-nodes-tools"
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    key_private                 = local.keys_private
+    key_public                  = local.keys_public
+    controle_plane_private_ip   = module.kube-control-plane-tools.private_ip
+}
+module "kube-control-plane-production" {
+    source                      = "./modules/kube-control-plane"
+
+    name                        = "kube-cp-production"
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    key_private                 = local.keys_private
+    tls_crt                     = local.tls_crt
+    tls_key                     = local.tls_key
+    rancher_install_doit        = "no"
+    rancher_install_hostname    = ""
+    rancher_install_password    = ""
+    rancher_private_ip          = module.kube-control-plane-tools.private_ip
+}
+module "kube-nodes-production" {
+    source                      = "./modules/kube-nodes"
+
+    number                      = 0
+    #local.count_production_nodes
+    name                        = "kube-nodes-production"
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    key_private                 = local.keys_private
+    key_public                  = local.keys_public
+    controle_plane_private_ip   = module.kube-control-plane-production.private_ip
+}
+
+module "vault" {
+    source                      = "./modules/vault"
+
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id, aws_security_group.sg-vault.id]
+    key_private                 = local.keys_private
+    tls_crt                     = local.tls_crt
+    tls_key                     = local.tls_key
+}
+
+module "harbor" {
+    source                      = "./modules/harbor"
+
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id, aws_security_group.sg-vault.id]
+    harbor_install_hostname     = local.harbor_install_hostname
+}
