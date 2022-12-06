@@ -12,7 +12,7 @@ output "production_cp_public_ip" {
   value       = "${module.kube-control-plane-production.public_ip}"
 }
 output "production_cp_private_ip" {
-  value       = "${module.kube-control-plane-production.public_ip}"
+  value       = "${module.kube-control-plane-production.private_ip}"
 }
 output "production_no_public_ip" {
   value       = "${module.kube-nodes-production.public_ips}"
@@ -32,8 +32,10 @@ output "vault_private_ip" {
   value       = "${module.vault.private_ip}"
 }
 
-output "IP_REVERSE_PROXY_PUBLIC" {
-  description = "Public IP of Tools Control Pane"
-  value       = "${aws_spot_instance_request.reverse-proxy.public_ip}"
+output "reverse_public_ip" {
+  value       = "${module.reverse.public_ip}"
+}
+output "reverse_private_ip" {
+  value       = "${module.reverse.private_ip}"
 }
 

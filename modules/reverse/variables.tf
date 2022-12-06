@@ -1,6 +1,3 @@
-variable "name" {
-  type = string
-}
 variable "ami" {
   type = string
 }
@@ -13,6 +10,9 @@ variable "subnet_id" {
 variable "vpc_security_group_ids" {
   type = list
 }
+variable "eip" {
+  type = string
+}
 variable "key_private" {
   type = string
 }
@@ -22,18 +22,29 @@ variable "tls_crt" {
 variable "tls_key" {
   type = string
 }
-variable "rancher_install_doit" {
+
+variable "harbor_dns" {
   type = string
 }
-variable "rancher_install_hostname" {
+variable "harbor_ip" {
   type = string
 }
-variable "rancher_install_password" {
+variable "vault_dns" {
   type = string
 }
-variable "rancher_private_ip" {
+variable "vault_ip" {
+  type = string
+}
+variable "rancher_dns" {
+  type = string
+}
+variable "rancher_ip" {
   type = string
 }
 variable "argocd_dns" {
   type = string
 }
+variable "argocd_ip" {
+  type = string
+}
+

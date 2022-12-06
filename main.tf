@@ -72,7 +72,7 @@ module "kube-control-plane-tools" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
@@ -80,6 +80,7 @@ module "kube-control-plane-tools" {
     rancher_install_hostname    = local.rancher_install_hostname
     rancher_install_password    = local.rancher_install_password
     rancher_private_ip          = ""
+    argocd_dns                  = local.argocd_dns
 }
 module "kube-nodes-tools" {
     source                      = "./modules/kube-nodes"
@@ -90,7 +91,7 @@ module "kube-nodes-tools" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
     key_public                  = local.keys_public
     controle_plane_private_ip   = module.kube-control-plane-tools.private_ip
@@ -102,7 +103,7 @@ module "kube-control-plane-production" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
@@ -110,6 +111,7 @@ module "kube-control-plane-production" {
     rancher_install_hostname    = ""
     rancher_install_password    = ""
     rancher_private_ip          = module.kube-control-plane-tools.private_ip
+    argocd_dns                  = ""
 }
 module "kube-nodes-production" {
     source                      = "./modules/kube-nodes"
@@ -120,7 +122,7 @@ module "kube-nodes-production" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
     key_public                  = local.keys_public
     controle_plane_private_ip   = module.kube-control-plane-production.private_ip
@@ -132,7 +134,7 @@ module "vault" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id, aws_security_group.sg-vault.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
@@ -144,6 +146,28 @@ module "harbor" {
     ami                         = local.ami
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
-    vpc_security_group_ids      = [aws_security_group.sg.id, aws_security_group.sg-kube.id, aws_security_group.sg-vault.id]
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     harbor_install_hostname     = local.harbor_install_hostname
+}
+
+module "reverse" {
+    source                      = "./modules/reverse"
+
+    ami                         = local.ami
+    instance_type               = local.instance_type
+    subnet_id                   = aws_subnet.public_subnet.id
+    vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
+    key_private                 = local.keys_private
+    eip                         = local.eip
+    tls_crt                     = local.tls_crt
+    tls_key                     = local.tls_key
+
+    harbor_dns                  = local.harbor_dns
+    harbor_ip                   = module.harbor.private_ip
+    vault_dns                   = local.vault_dns
+    vault_ip                    = module.vault.private_ip
+    rancher_dns                 = local.rancher_dns
+    rancher_ip                  = module.kube-control-plane-tools.private_ip
+    argocd_dns                  = local.argocd_dns
+    argocd_ip                   = module.kube-control-plane-tools.private_ip
 }

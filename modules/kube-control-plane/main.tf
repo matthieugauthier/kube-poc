@@ -34,6 +34,20 @@ resource "aws_spot_instance_request" "control-plane" {
 		destination = "/home/ubuntu/tls_key.pem"
 	}
 
+	provisioner "file" {
+		source      = "modules/kube-control-plane/confs/argocd.yml"
+		destination = "/home/ubuntu/argocd.yml"
+	}
+
+	provisioner "file" {
+		source      = "modules/kube-control-plane/confs/argocd-ui.yml"
+		destination = "/home/ubuntu/argocd-ui.yml"
+	}
+
+	provisioner "file" {
+		source      = "modules/kube-control-plane/confs/wild-tls.yml"
+		destination = "/home/ubuntu/wild-tls.yml"
+	}
 
 
   user_data = <<-EOF
@@ -80,6 +94,22 @@ resource "aws_spot_instance_request" "control-plane" {
     echo "*** Wait Rancher"
     kubectl -n cattle-system rollout status deploy/rancher
     echo "*** Completed Installing RKE2 + Rancher"
+ 
+    echo "*** Install argocd"
+    sleep 60
+    sed -i "s/###TLSCRT###/${base64encode(var.tls_crt)}/" /home/ubuntu/wild-tls.yml
+    sed -i "s/###TLSKEY###/${base64encode(var.tls_key)}/" /home/ubuntu/wild-tls.yml
+    sed -i "s/###ARGOCDDNS###/${var.argocd_dns}/" /home/ubuntu/argocd-ui.yml
+    kubectl create namespace argocd
+    kubectl apply -n argocd -f /home/ubuntu/wild-tls.yml
+    kubectl apply -n argocd -f /home/ubuntu/argocd.yml
+    kubectl apply -n argocd -f /home/ubuntu/argocd-ui.yml
+    echo "*** Completed Installing argocd"
+
+    echo "Argocd Password:"
+    sleep 10
+    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
   else
     echo "${var.rancher_private_ip} rancher.gauthier.se" >> /etc/hosts
     echo "*** Completed Installing RKE2 Without Rancher"
