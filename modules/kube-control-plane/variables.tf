@@ -16,6 +16,9 @@ variable "vpc_security_group_ids" {
 variable "key_private" {
   type = string
 }
+variable "key_public" {
+  type = string
+}
 variable "tls_crt" {
   type = string
 }
@@ -25,13 +28,13 @@ variable "tls_key" {
 variable "rancher_install_doit" {
   type = string
 }
-variable "rancher_install_hostname" {
-  type = string
-}
 variable "rancher_install_password" {
   type = string
 }
 variable "rancher_private_ip" {
+  type = string
+}
+variable "rancher_dns" {
   type = string
 }
 variable "argocd_dns" {

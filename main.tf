@@ -70,17 +70,18 @@ module "kube-control-plane-tools" {
 
     name                        = "kube-cp-tools"
     ami                         = local.ami
-    instance_type               = local.instance_type
+    instance_type               = local.instacne_type_kube
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
+    key_public                  = local.keys_public
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
     rancher_install_doit        = "yes"
-    rancher_install_hostname    = local.rancher_install_hostname
     rancher_install_password    = local.rancher_install_password
     rancher_private_ip          = ""
     argocd_dns                  = local.argocd_dns
+    rancher_dns                 = local.rancher_dns
 }
 module "kube-nodes-tools" {
     source                      = "./modules/kube-nodes"
@@ -89,7 +90,7 @@ module "kube-nodes-tools" {
     #local.count_tools_nodes
     name                        = "kube-nodes-tools"
     ami                         = local.ami
-    instance_type               = local.instance_type
+    instance_type               = local.instacne_type_kube
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
@@ -101,17 +102,18 @@ module "kube-control-plane-production" {
 
     name                        = "kube-cp-production"
     ami                         = local.ami
-    instance_type               = local.instance_type
+    instance_type               = local.instacne_type_kube
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
+    key_public                  = local.keys_public
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
     rancher_install_doit        = "no"
-    rancher_install_hostname    = ""
     rancher_install_password    = ""
     rancher_private_ip          = module.kube-control-plane-tools.private_ip
-    argocd_dns                  = ""
+    argocd_dns                  = local.argocd_dns
+    rancher_dns                 = local.rancher_dns
 }
 module "kube-nodes-production" {
     source                      = "./modules/kube-nodes"
@@ -120,7 +122,7 @@ module "kube-nodes-production" {
     #local.count_production_nodes
     name                        = "kube-nodes-production"
     ami                         = local.ami
-    instance_type               = local.instance_type
+    instance_type               = local.instacne_type_kube
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private

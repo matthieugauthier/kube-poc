@@ -62,6 +62,8 @@ resource "aws_spot_instance_request" "reverse" {
   apt install -y apache2
   a2enmod ssl proxy proxy_http
 
+  sleep 30 
+  
   cp /home/ubuntu/harbor.conf /etc/apache2/sites-available/harbor.conf
   sed -i "s/###HARBORDNS###/${var.harbor_dns}/" /etc/apache2/sites-available/harbor.conf
   echo "${var.harbor_ip} ${var.harbor_dns}" >> /etc/hosts

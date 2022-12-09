@@ -23,6 +23,18 @@ resource "aws_spot_instance_request" "control-plane" {
 		private_key  = var.key_private
 	}
 
+  # Upload Private SSH Key
+  provisioner "file" {
+      content     = var.key_private
+      destination = "/home/ubuntu/.ssh/id_rsa"
+  }
+
+  # Upload Public SSH Key
+  provisioner "file" {
+      content     = var.key_public
+      destination = "/home/ubuntu/.ssh/id_rsa.pub"
+  }
+
 	# Upload Private SSH Key
 	provisioner "file" {
 		content     = var.tls_crt
@@ -49,6 +61,10 @@ resource "aws_spot_instance_request" "control-plane" {
 		destination = "/home/ubuntu/wild-tls.yml"
 	}
 
+	provisioner "file" {
+		source      = "modules/kube-control-plane/confs/hostalias-rancherhost-patch.yml"
+		destination = "/home/ubuntu/hostalias-rancherhost-patch.yml"
+	}
 
   user_data = <<-EOF
   #!/bin/bash
@@ -67,6 +83,13 @@ resource "aws_spot_instance_request" "control-plane" {
   ln -s /var/lib/rancher/rke2/bin/kubectl /usr/local/bin/kubectl
   echo "export KUBECONFIG=/home/ubuntu/rke2.yaml" >> /home/ubuntu/.profile
   export KUBECONFIG=/home/ubuntu/rke2.yaml
+  echo "Configure Cluster Name"
+  CLUSTER_NAME=${replace(var.name, "kube-cp-","")}
+  echo $CLUSTER_NAME
+  sed -i "s/default/$CLUSTER_NAME/" /home/ubuntu/rke2.yaml
+  CLUSTER_IP=$(hostname -I|cut -d' ' -f1)
+  echo $CLUSTER_IP
+  sed -i "s/127.0.0.1/$CLUSTER_IP/" /home/ubuntu/rke2.yaml
 
   echo "*** Wait RKE2 OK"
   while [[ $(kubectl get po -A | grep -v Completed | grep -v Running | wc -l) != "1" ]]
@@ -74,6 +97,13 @@ resource "aws_spot_instance_request" "control-plane" {
       sleep 5
   done
   sleep 20
+
+  sed -i "s/###RANCHERIP###/${var.rancher_private_ip}/" /home/ubuntu/hostalias-rancherhost-patch.yml
+
+  curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+    sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+    rm argocd-linux-amd64
+
 
   if [ "${var.rancher_install_doit}" == "yes" ]; then
     echo "*** Install cert-manager"
@@ -89,7 +119,7 @@ resource "aws_spot_instance_request" "control-plane" {
 
     echo "*** Install rancher"
     helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-    helm install rancher rancher-latest/rancher --namespace cattle-system --set ingress.tls.source=rancher --set ingress.tls.secretName=wildcard-tls --set hostname=${var.rancher_install_hostname} --set replicas=1 --set bootstrapPassword=${var.rancher_install_password}
+    helm install rancher rancher-latest/rancher --namespace cattle-system --set ingress.tls.source=rancher --set ingress.tls.secretName=wildcard-tls --set hostname=${var.rancher_dns} --set replicas=3 --set bootstrapPassword=${var.rancher_install_password}
 
     echo "*** Wait Rancher"
     kubectl -n cattle-system rollout status deploy/rancher
@@ -107,14 +137,33 @@ resource "aws_spot_instance_request" "control-plane" {
     echo "*** Completed Installing argocd"
 
     echo "Argocd Password:"
-    sleep 10
-    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+    sleep 30
+    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > /home/ubuntu/token_argocd
 
   else
-    echo "${var.rancher_private_ip} rancher.gauthier.se" >> /etc/hosts
+    echo "${var.rancher_private_ip} ${var.rancher_dns} ${var.argocd_dns}" >> /etc/hosts
     echo "*** Completed Installing RKE2 Without Rancher"
+
+    sleep 230
+
+    echo "Get Remote Token Argo"
+    TOKEN=$(ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/id_rsa ubuntu@${var.rancher_dns} cat /home/ubuntu/token_argocd)
+    echo $TOKEN
+    echo "Login Argo"
+    echo "argocd login ${var.argocd_dns} --username admin --password $TOKEN --grpc-web"
+    argocd login ${var.argocd_dns} --username admin --password $TOKEN --grpc-web
+    echo "Add current cluster to Argo"
+    argocd cluster add $CLUSTER_NAME --grpc-web --yes
+
+
+    echo "Run \"kubectl patch -n cattle-system deployment cattle-cluster-agent --patch-file /home/ubuntu/hostalias-rancherhost-patch.yml\" to patch after apply rancher conf"
   fi
 
+  echo "************************************"
+  echo ""
+  echo "*** Completed Cloud Init"
+  echo ""
+  echo ""
   EOF
 
   tags = {

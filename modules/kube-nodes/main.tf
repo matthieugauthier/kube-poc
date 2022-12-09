@@ -50,6 +50,9 @@ resource "aws_spot_instance_request" "node" {
   echo "server: https://$CP_IP:9345" > /etc/rancher/rke2/config.yaml
   echo "token: $TOKEN" >> /etc/rancher/rke2/config.yaml
 
+  echo "*** Take time to wait main"
+  sleep 300
+
   systemctl start rke2-agent.service
 
   echo "*** Completed Installing RKE2"
