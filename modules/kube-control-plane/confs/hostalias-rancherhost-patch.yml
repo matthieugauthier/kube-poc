@@ -1,0 +1,7 @@
+spec:
+  template:
+    spec:
+      hostAliases:
+        - ip: "###RANCHERIP###"
+          hostnames:
+          - "rancher.gauthier.se"
