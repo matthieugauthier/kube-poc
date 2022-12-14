@@ -21,6 +21,12 @@ resource "aws_spot_instance_request" "harbor" {
     private_key  = var.key_private
   }
 
+  # Upload Public SSH Key
+  provisioner "file" {
+    content     = var.key_public
+    destination = "/home/ubuntu/.ssh/id_rsa.pub"
+  }
+
   provisioner "file" {
     source      = "modules/harbor/scripts/install-harbor.sh"
     destination = "/home/ubuntu/install-harbor.sh"
@@ -32,10 +38,11 @@ resource "aws_spot_instance_request" "harbor" {
 
   echo "$(hostname -i | cut -d' ' -f1) ${var.harbor_install_hostname}" >> /etc/hosts
 
+  while [ ! -f /home/ubuntu/.ssh/id_rsa.pub ]; do sleep 2; done;
+  chmod 400 /home/ubuntu/.ssh/id_rsa.pub
   while [ ! -f /home/ubuntu/install-harbor.sh ]; do sleep 2; done;
 
   IPorFQDN=${var.harbor_install_hostname} HARBOR_ADMIN_PASSWORD=${var.harbor_install_password} bash /home/ubuntu/install-harbor.sh
-
 
   echo "*** Completed Installing Harbor"
   EOF

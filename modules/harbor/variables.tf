@@ -13,6 +13,9 @@ variable "vpc_security_group_ids" {
 variable "key_private" {
   type = string
 }
+variable "key_public" {
+  type = string
+}
 variable "harbor_install_hostname" {
   type = string
 }
