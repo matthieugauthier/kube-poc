@@ -140,6 +140,7 @@ module "vault" {
     key_private                 = local.keys_private
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key
+    vault_install_hostname      = local.vault_dns
 }
 
 module "harbor" {

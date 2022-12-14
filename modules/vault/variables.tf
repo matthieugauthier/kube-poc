@@ -19,3 +19,6 @@ variable "tls_crt" {
 variable "tls_key" {
   type = string
 }
+variable "vault_install_hostname" {
+  type = string
+}
