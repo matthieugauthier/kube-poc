@@ -146,6 +146,8 @@ resource "aws_spot_instance_request" "control-plane" {
     ARGOCD_TOKEN=$(ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/id_rsa ubuntu@${var.rancher_dns} cat /home/ubuntu/token_argocd)
     argocd login ${var.argocd_dns} --username admin --password $ARGOCD_TOKEN --grpc-web
     argocd cluster add $CLUSTER_NAME --grpc-web --yes
+    # Not the best place, but usefull here
+    argocd account update-password --account admin --new-password ${var.rancher_install_password} --current-password $ARGOCD_TOKEN
 
     echo "*** Prepare cluster rancher agent patch"
     sed -i "s/###RANCHERIP###/${var.rancher_private_ip}/" /home/ubuntu/hostalias-rancherhost-patch.yml
