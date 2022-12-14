@@ -163,6 +163,7 @@ module "reverse" {
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
     key_private                 = local.keys_private
+    key_public                  = local.keys_public
     eip                         = local.eip
     tls_crt                     = local.tls_crt
     tls_key                     = local.tls_key

@@ -27,6 +27,18 @@ resource "aws_spot_instance_request" "reverse" {
 
 	# Upload Private SSH Key
 	provisioner "file" {
+		content     = var.key_private
+		destination = "/home/ubuntu/.ssh/id_rsa"
+	}
+
+	# Upload Public SSH Key
+	provisioner "file" {
+		content     = var.key_public
+		destination = "/home/ubuntu/.ssh/id_rsa.pub"
+	}
+
+	# Upload Private SSH Key
+	provisioner "file" {
 		content     = var.tls_crt
 		destination = "/home/ubuntu/tls.crt"
 	}
@@ -58,6 +70,11 @@ resource "aws_spot_instance_request" "reverse" {
   user_data = <<-EOF
   #!/bin/bash
   echo "*** Installing Reverse Proxy"
+
+  while [ ! -f /home/ubuntu/.ssh/id_rsa ]; do sleep 2; done;
+  chmod 400 /home/ubuntu/.ssh/id_rsa
+  while [ ! -f /home/ubuntu/.ssh/id_rsa.pub ]; do sleep 2; done;
+  chmod 400 /home/ubuntu/.ssh/id_rsa.pub
 
   apt install -y apache2
   a2enmod ssl proxy proxy_http proxy_wstunnel rewrite
