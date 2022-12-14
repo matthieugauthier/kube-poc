@@ -84,17 +84,17 @@ resource "aws_spot_instance_request" "reverse" {
   
   cp /home/ubuntu/harbor.conf /etc/apache2/sites-available/harbor.conf
   sed -i "s/###HARBORDNS###/${var.harbor_dns}/" /etc/apache2/sites-available/harbor.conf
-  echo "${var.harbor_ip} ${var.harbor_dns}" >> /etc/hosts
+  echo "${var.harbor_ip} ${var.harbor_dns} harbor" >> /etc/hosts
   a2ensite harbor
 
   cp /home/ubuntu/vault.conf /etc/apache2/sites-available/vault.conf
   sed -i "s/###VAULTDNS###/${var.vault_dns}/" /etc/apache2/sites-available/vault.conf
-  echo "${var.vault_ip} ${var.vault_dns}" >> /etc/hosts
+  echo "${var.vault_ip} ${var.vault_dns} vault" >> /etc/hosts
   a2ensite vault
 
   cp /home/ubuntu/rancher.conf /etc/apache2/sites-available/rancher.conf
   sed -i "s/###RANCHERDNS###/${var.rancher_dns}/" /etc/apache2/sites-available/rancher.conf
-  echo "${var.rancher_ip} ${var.rancher_dns}" >> /etc/hosts
+  echo "${var.rancher_ip} ${var.rancher_dns} rancher" >> /etc/hosts
   a2ensite rancher
 
   cp /home/ubuntu/argocd.conf /etc/apache2/sites-available/argocd.conf
