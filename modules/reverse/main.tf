@@ -60,7 +60,7 @@ resource "aws_spot_instance_request" "reverse" {
   echo "*** Installing Reverse Proxy"
 
   apt install -y apache2
-  a2enmod ssl proxy proxy_http
+  a2enmod ssl proxy proxy_http proxy_wstunnel rewrite
 
   sleep 30 
   
