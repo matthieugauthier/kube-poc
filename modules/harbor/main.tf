@@ -36,6 +36,7 @@ resource "aws_spot_instance_request" "harbor" {
   #!/bin/bash
   echo "*** Installing Harbor"
 
+  hostname -b "harbor-$(hostname)"
   echo "$(hostname -i | cut -d' ' -f1) ${var.harbor_install_hostname}" >> /etc/hosts
 
   while [ ! -f /home/ubuntu/.ssh/id_rsa.pub ]; do sleep 2; done;
