@@ -71,6 +71,7 @@ resource "aws_spot_instance_request" "reverse" {
   #!/bin/bash
   echo "*** Installing Reverse Proxy"
 
+  hostname -b "reverse-$(hostname)"
   while [ ! -f /home/ubuntu/.ssh/id_rsa ]; do sleep 2; done;
   chmod 400 /home/ubuntu/.ssh/id_rsa
   while [ ! -f /home/ubuntu/.ssh/id_rsa.pub ]; do sleep 2; done;

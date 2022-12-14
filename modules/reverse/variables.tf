@@ -16,6 +16,9 @@ variable "eip" {
 variable "key_private" {
   type = string
 }
+variable "key_public" {
+  type = string
+}
 variable "tls_crt" {
   type = string
 }
