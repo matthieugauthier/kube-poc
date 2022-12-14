@@ -14,13 +14,28 @@ resource "aws_spot_instance_request" "harbor" {
     delete_on_termination = true
   }
 
+  connection {
+    type         = "ssh"
+    host         = self.public_ip
+    user         = "ubuntu"
+    private_key  = var.key_private
+  }
+
+  provisioner "file" {
+    source      = "modules/harbor/scripts/install-harbor.sh"
+    destination = "/home/ubuntu/install-harbor.sh"
+  }
+
   user_data = <<-EOF
   #!/bin/bash
   echo "*** Installing Harbor"
 
   echo "$(hostname -i | cut -d' ' -f1) ${var.harbor_install_hostname}" >> /etc/hosts
 
-  curl https://raw.githubusercontent.com/matthieugauthier/kube-poc/main/scripts/install-harbor.sh | IPorFQDN=${var.harbor_install_hostname} bash -
+  while [ ! -f /home/ubuntu/install-harbor.sh ]; do sleep 2; done;
+
+  IPorFQDN=${var.harbor_install_hostname} HARBOR_ADMIN_PASSWORD=${var.harbor_install_password} bash /home/ubuntu/install-harbor.sh
+
 
   echo "*** Completed Installing Harbor"
   EOF

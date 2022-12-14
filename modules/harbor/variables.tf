@@ -10,6 +10,12 @@ variable "subnet_id" {
 variable "vpc_security_group_ids" {
   type = list
 }
+variable "key_private" {
+  type = string
+}
 variable "harbor_install_hostname" {
+  type = string
+}
+variable "harbor_install_password" {
   type = string
 }

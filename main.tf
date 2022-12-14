@@ -149,7 +149,9 @@ module "harbor" {
     instance_type               = local.instance_type
     subnet_id                   = aws_subnet.public_subnet.id
     vpc_security_group_ids      = [aws_security_group.sg-ssh-public.id, aws_security_group.sg-http-public.id, aws_security_group.sg-internal.id]
+    key_private                 = local.keys_private
     harbor_install_hostname     = local.harbor_install_hostname
+    harbor_install_password     = local.harbor_install_password
 }
 
 module "reverse" {

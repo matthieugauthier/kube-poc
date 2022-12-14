@@ -15,6 +15,7 @@ locals {
     rancher_install_password    = ""
 
     harbor_install_hostname     = ""
+    harbor_install_password     = ""
 
     tls_crt                     = ""
     tls_key                     = ""
