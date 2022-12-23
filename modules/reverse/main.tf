@@ -59,6 +59,10 @@ resource "aws_spot_instance_request" "reverse" {
 		destination = "/home/ubuntu/vault.conf"
 	}
 	provisioner "file" {
+		source      = "modules/reverse/confs/conjur.conf"
+		destination = "/home/ubuntu/conjur.conf"
+	}
+	provisioner "file" {
 		source      = "modules/reverse/confs/rancher.conf"
 		destination = "/home/ubuntu/rancher.conf"
 	}
@@ -92,6 +96,11 @@ resource "aws_spot_instance_request" "reverse" {
   echo "${var.vault_ip} ${var.vault_dns} vault" >> /etc/hosts
   a2ensite vault
 
+  cp /home/ubuntu/conjur.conf /etc/apache2/sites-available/conjur.conf
+  sed -i "s/###CONJURDNS###/${var.conjur_dns}/" /etc/apache2/sites-available/conjur.conf
+  echo "${var.conjur_ip} ${var.conjur_dns} conjur" >> /etc/hosts
+  a2ensite conjur
+
   cp /home/ubuntu/rancher.conf /etc/apache2/sites-available/rancher.conf
   sed -i "s/###RANCHERDNS###/${var.rancher_dns}/" /etc/apache2/sites-available/rancher.conf
   echo "${var.rancher_ip} ${var.rancher_dns} rancher" >> /etc/hosts
@@ -103,6 +112,9 @@ resource "aws_spot_instance_request" "reverse" {
   a2ensite argocd
   
   systemctl restart apache2
+
+  echo "${var.tools_ip} tools" >> /etc/hosts
+  echo "${var.production_ip} production" >> /etc/hosts
 
   echo "*** Completed Reverse Proxy"
   EOF

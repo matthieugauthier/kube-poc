@@ -7,6 +7,9 @@ variable "instance_type" {
 variable "subnet_id" {
   type = string
 }
+variable "private_ip" {
+  type = string
+}
 variable "vpc_security_group_ids" {
   type = list
 }

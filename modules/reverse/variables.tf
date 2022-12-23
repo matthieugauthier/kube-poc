@@ -38,6 +38,12 @@ variable "vault_dns" {
 variable "vault_ip" {
   type = string
 }
+variable "conjur_dns" {
+  type = string
+}
+variable "conjur_ip" {
+  type = string
+}
 variable "rancher_dns" {
   type = string
 }
@@ -50,4 +56,11 @@ variable "argocd_dns" {
 variable "argocd_ip" {
   type = string
 }
+variable "tools_ip" {
+  type = string
+}
+variable "production_ip" {
+  type = string
+}
+
 

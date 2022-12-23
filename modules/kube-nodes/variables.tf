@@ -26,3 +26,6 @@ variable "key_public" {
 variable "controle_plane_private_ip" {
   type = string
 }
+variable "controle_plane_id" {
+  type = string
+}
